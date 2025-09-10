@@ -21,6 +21,7 @@ political party, etc.
 """
 
 START_OF_CONGRESS = 1789
+CURRENT_YEAR = datetime.now(tz=UTC).year
 
 
 def _validate_year(year: int) -> None:
@@ -31,9 +32,7 @@ def _validate_year(year: int) -> None:
         year: Year to validate.
     """
 
-    current_year = datetime.now(tz=UTC).year
-
-    if year > current_year:
+    if year > CURRENT_YEAR:
         err = "The year cannot be in the future."
         raise ValueError(err)
     if year < START_OF_CONGRESS:
@@ -56,6 +55,29 @@ def _convert_year_to_session(year: int) -> int:
     _validate_year(year)
 
     return floor((year - START_OF_CONGRESS) / 2) + 1
+
+
+MINIMUM_SESSION = 1
+CURRENT_SESSION = _convert_year_to_session(CURRENT_YEAR)
+
+
+def _validate_session(session: int) -> None:
+    """
+    Validate that a session is valid for a Congress.
+
+    Args:
+        session: Session to validate.
+    """
+
+    if session > CURRENT_SESSION:
+        err = "This session hasn't happened yet."
+        raise ValueError(err)
+    if session < MINIMUM_SESSION:
+        err = (
+            f"This session cannot occur, as Congress begins"
+            f"at session {MINIMUM_SESSION}"
+        )
+        raise ValueError(err)
 
 
 def get_voting_records_by_session(
@@ -91,8 +113,15 @@ def get_voting_records_by_sessions(
         Polars DataFrame containing the voting records for that range.
     """
 
-    del start_session, end_session, chamber
-    return DataFrame()
+    _validate_session(start_session)
+    _validate_session(end_session)
+
+    records = DataFrame()
+    for session in range(start_session, end_session + 1):
+        record = get_voting_records_by_session(session, chamber)
+        records.join(record)
+
+    return records
 
 
 def get_voting_records_by_year(
@@ -129,5 +158,7 @@ def get_voting_records_by_years(
         Polars DataFrame containing the voting records for that range.
     """
 
-    del start_year, end_year, chamber
-    return DataFrame()
+    start_session = _convert_year_to_session(start_year)
+    end_session = _convert_year_to_session(end_year)
+
+    return get_voting_records_by_sessions(start_session, end_session, chamber)
