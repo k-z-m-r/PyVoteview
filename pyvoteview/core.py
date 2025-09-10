@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from math import floor
 from typing import Literal
 
-from polars import DataFrame
+from polars import DataFrame, read_csv
 
 """
 Sequence of events:
@@ -65,6 +65,22 @@ def _validate_session(session: int) -> None:
         raise ValueError(err)
 
 
+def _validate_chamber(chamber: str) -> None:
+    """
+    Validate that a chamber is either House or Senate.
+
+    Args:
+        chamber: Chamber to validate.
+    """
+
+    if chamber not in ("House", "Senate"):
+        err = (
+            "Chamber must be one of House or Senate, "
+            f"but {chamber} was entered.  The input is case sensitive."
+        )
+        raise ValueError(err)
+
+
 def _format_url(session: int, chamber: Literal["House", "Senate"]) -> str:
     """
     Formats URL to be consistent with Voteview expectation.
@@ -99,8 +115,11 @@ def get_voting_records_by_session(
     """
 
     _validate_session(session)
-    del session, chamber
-    return DataFrame()
+    _validate_chamber(chamber)
+
+    url = _format_url(session, chamber)
+
+    return read_csv(url)
 
 
 def get_voting_records_by_sessions(
