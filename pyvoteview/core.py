@@ -1,8 +1,12 @@
 """Core functionality of PyVoteview"""
 
+from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime
+from math import floor
+from os import cpu_count
 from typing import Literal
 
-from polars import DataFrame
+from polars import DataFrame, Float32, Int32, col, concat, read_csv
 
 """
 Sequence of events:
@@ -18,6 +22,8 @@ political party, etc.
 2. Pydantic? Could be a fun helper function.  Messy very quickly, though.
 """
 
+CURRENT_YEAR = datetime.now(tz=UTC).year
+
 
 def _convert_year_to_session(year: int) -> int:
     """
@@ -31,11 +37,69 @@ def _convert_year_to_session(year: int) -> int:
         end of a session is actually part of the next session.
     """
 
-    del year
-    return 0
+    return floor((year - 1789) / 2) + 1
 
 
-def get_voting_records_by_session(
+CURRENT_SESSION = _convert_year_to_session(CURRENT_YEAR)
+
+
+def _validate_session(session: int) -> None:
+    """
+    Validate that a session is valid for a Congress.
+
+    Args:
+        session: Session to validate.
+    """
+
+    if session > CURRENT_SESSION:
+        err = (
+            "This session would occur after "
+            f"{CURRENT_SESSION} ({CURRENT_YEAR})."
+        )
+        raise ValueError(err)
+    if session < 1:
+        err = (
+            "This session cannot occur, as Congress begins at session 1 (1789)"
+        )
+        raise ValueError(err)
+
+
+def _validate_chamber(chamber: str) -> None:
+    """
+    Validate that a chamber is either House or Senate.
+
+    Args:
+        chamber: Chamber to validate.
+    """
+
+    if chamber not in ("House", "Senate"):
+        err = (
+            "Chamber must be one of House or Senate, "
+            f"but {chamber} was entered.  The input is case sensitive."
+        )
+        raise ValueError(err)
+
+
+def _format_url(session: int, chamber: Literal["House", "Senate"]) -> str:
+    """
+    Formats URL to be consistent with Voteview expectation.
+
+    Args:
+        session: The session of Congress.
+        chamber: The chamber of Congress.
+
+    Returns:
+        URL formatted as:
+        https://voteview.com/static/data/out/votes/{Chamber}{Session}_votes.csv
+    """
+
+    return (
+        "https://voteview.com/static/data/out/votes/"
+        f"{chamber[0]}{session:03}_votes.csv"
+    )
+
+
+def get_records_by_session(
     session: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -49,11 +113,22 @@ def get_voting_records_by_session(
         Polars DataFrame containing the voting records.
     """
 
-    del session, chamber
-    return DataFrame()
+    _validate_session(session)
+    _validate_chamber(chamber)
+
+    url = _format_url(session, chamber)
+
+    record = read_csv(url, null_values=["N/A"])
+
+    return record.with_columns(
+        col("rollnumber").cast(Int32, strict=False),
+        col("icpsr").cast(Int32, strict=False),
+        col("cast_code").cast(Int32, strict=False),
+        col("prob").cast(Float32, strict=False),
+    )
 
 
-def get_voting_records_by_sessions(
+def get_records_by_session_range(
     start_session: int, end_session: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -68,11 +143,28 @@ def get_voting_records_by_sessions(
         Polars DataFrame containing the voting records for that range.
     """
 
-    del start_session, end_session, chamber
-    return DataFrame()
+    if start_session >= end_session:
+        err = (
+            f"The first session ({start_session}) must be strictly "
+            f"less than the last session ({end_session})."
+        )
+        raise ValueError(err)
+
+    records = []
+    with ThreadPoolExecutor(
+        max_workers=min(32, (cpu_count() or 1) + 4)
+    ) as executor:
+        records = list(
+            executor.map(
+                lambda s: get_records_by_session(s, chamber),
+                range(start_session, end_session + 1),
+            )
+        )
+
+    return concat(records, how="vertical").sort("congress")
 
 
-def get_voting_records_by_year(
+def get_records_by_year(
     year: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -86,11 +178,12 @@ def get_voting_records_by_year(
         Polars DataFrame containing the voting records.
     """
 
-    del year, chamber
-    return DataFrame()
+    session = _convert_year_to_session(year)
+
+    return get_records_by_session(session, chamber)
 
 
-def get_voting_records_by_years(
+def get_records_by_year_range(
     start_year: int, end_year: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -105,5 +198,7 @@ def get_voting_records_by_years(
         Polars DataFrame containing the voting records for that range.
     """
 
-    del start_year, end_year, chamber
-    return DataFrame()
+    start_session = _convert_year_to_session(start_year)
+    end_session = _convert_year_to_session(end_year)
+
+    return get_records_by_session_range(start_session, end_session, chamber)
