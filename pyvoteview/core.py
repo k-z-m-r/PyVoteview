@@ -118,6 +118,13 @@ def get_voting_records_by_sessions(
         Polars DataFrame containing the voting records for that range.
     """
 
+    if start_session >= end_session:
+        err = (
+            f"The first session ({start_session}) must be strictly "
+            f"less than the last session ({end_session})."
+        )
+        raise ValueError(err)
+
     records = DataFrame()
     for session in range(start_session, end_session + 1):
         record = get_voting_records_by_session(session, chamber)
