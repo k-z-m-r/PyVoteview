@@ -24,22 +24,6 @@ START_OF_CONGRESS = 1789
 CURRENT_YEAR = datetime.now(tz=UTC).year
 
 
-def _validate_year(year: int) -> None:
-    """
-    Validate that a year is valid from the lens of Congress (1789-Now).
-
-    Args:
-        year: Year to validate.
-    """
-
-    if year > CURRENT_YEAR:
-        err = "The year cannot be in the future."
-        raise ValueError(err)
-    if year < START_OF_CONGRESS:
-        err = "The year cannot be before the U.S. Congress existed."
-        raise ValueError(err)
-
-
 def _convert_year_to_session(year: int) -> int:
     """
     Converts a year to the corresponding U.S. Congress session.
@@ -51,8 +35,6 @@ def _convert_year_to_session(year: int) -> int:
         The corresponding session.  Assumes the January which comes at the tail
         end of a session is actually part of the next session.
     """
-
-    _validate_year(year)
 
     return floor((year - START_OF_CONGRESS) / 2) + 1
 
@@ -70,14 +52,36 @@ def _validate_session(session: int) -> None:
     """
 
     if session > CURRENT_SESSION:
-        err = "This session hasn't happened yet."
+        err = (
+            "This session would occur after "
+            f"{CURRENT_SESSION} ({CURRENT_YEAR})."
+        )
         raise ValueError(err)
     if session < MINIMUM_SESSION:
         err = (
-            f"This session cannot occur, as Congress begins"
-            f"at session {MINIMUM_SESSION}"
+            f"This session cannot occur, as Congress begins "
+            f"at session {MINIMUM_SESSION} ({START_OF_CONGRESS})"
         )
         raise ValueError(err)
+
+
+def _format_url(session: int, chamber: Literal["House", "Senate"]) -> str:
+    """
+    Formats URL to be consistent with Voteview expectation.
+
+    Args:
+        session: The session of Congress.
+        chamber: The chamber of Congress.
+
+    Returns:
+        URL formatted as:
+        https://voteview.com/static/data/out/votes/{Chamber}{Session}_votes.csv
+    """
+
+    return (
+        "https://voteview.com/static/data/out/votes/"
+        f"{chamber[0]}{str(session).zfill(3)}_votes.csv"
+    )
 
 
 def get_voting_records_by_session(
@@ -94,6 +98,7 @@ def get_voting_records_by_session(
         Polars DataFrame containing the voting records.
     """
 
+    _validate_session(session)
     del session, chamber
     return DataFrame()
 
@@ -112,9 +117,6 @@ def get_voting_records_by_sessions(
     Returns:
         Polars DataFrame containing the voting records for that range.
     """
-
-    _validate_session(start_session)
-    _validate_session(end_session)
 
     records = DataFrame()
     for session in range(start_session, end_session + 1):
