@@ -8,11 +8,18 @@ authors = [
     { name = "Jeremy Kazimer", email = "jeremykazimer@gmail.com" }
 ]
 license = "Apache-2.0"
-keywords = []
+keywords = ["voteview", "congress", "politics"]
 urls = { source = "https://github.com/k-z-m-r/PyVoteview" }
 readme = "README.md"
 requires-python = ">=3.11"
 dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyvoteview.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["pyvoteview*"]
+exclude = ["pyvoteview.tests*"]
 
 [tool.uv]
 default-groups = []
