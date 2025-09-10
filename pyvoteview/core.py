@@ -1,7 +1,9 @@
 """Core functionality of PyVoteview"""
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from math import floor
+from os import cpu_count
 from typing import Literal
 
 from polars import DataFrame, Float32, Int32, col, concat, read_csv
@@ -93,11 +95,11 @@ def _format_url(session: int, chamber: Literal["House", "Senate"]) -> str:
 
     return (
         "https://voteview.com/static/data/out/votes/"
-        f"{chamber[0]}{str(session).zfill(3)}_votes.csv"
+        f"{chamber[0]}{session:03}_votes.csv"
     )
 
 
-def get_voting_records_by_session(
+def get_records_by_session(
     session: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -126,7 +128,7 @@ def get_voting_records_by_session(
     )
 
 
-def get_voting_records_by_sessions(
+def get_records_by_session_range(
     start_session: int, end_session: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -149,14 +151,20 @@ def get_voting_records_by_sessions(
         raise ValueError(err)
 
     records = []
-    for session in range(start_session, end_session + 1):
-        record = get_voting_records_by_session(session, chamber)
-        records.append(record)
+    with ThreadPoolExecutor(
+        max_workers=min(32, (cpu_count() or 1) + 4)
+    ) as executor:
+        records = list(
+            executor.map(
+                lambda s: get_records_by_session(s, chamber),
+                range(start_session, end_session + 1),
+            )
+        )
 
-    return concat(records, how="vertical")
+    return concat(records, how="vertical").sort("congress")
 
 
-def get_voting_records_by_year(
+def get_records_by_year(
     year: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -172,10 +180,10 @@ def get_voting_records_by_year(
 
     session = _convert_year_to_session(year)
 
-    return get_voting_records_by_session(session, chamber)
+    return get_records_by_session(session, chamber)
 
 
-def get_voting_records_by_years(
+def get_records_by_year_range(
     start_year: int, end_year: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -193,4 +201,4 @@ def get_voting_records_by_years(
     start_session = _convert_year_to_session(start_year)
     end_session = _convert_year_to_session(end_year)
 
-    return get_voting_records_by_sessions(start_session, end_session, chamber)
+    return get_records_by_session_range(start_session, end_session, chamber)
