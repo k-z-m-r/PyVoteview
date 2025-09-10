@@ -19,6 +19,22 @@ political party, etc.
 """
 
 
+def _convert_year_to_session(year: int) -> int:
+    """
+    Converts a year to the corresponding U.S. Congress session.
+
+    Args:
+        year: The year to convert.
+
+    Returns:
+        The corresponding session.  Assumes the January which comes at the tail
+        end of a session is actually part of the next session.
+    """
+
+    del year
+    return 0
+
+
 def get_voting_records_by_session(
     session: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
@@ -63,8 +79,7 @@ def get_voting_records_by_year(
     Retrieves voting records by year and chamber.
 
     Args:
-        year: The year that the session took place.  Counts the end of one
-            session from January onwards as part of the subsequent session.
+        year: The year that the session took place.
         chamber: Which chamber of Congress to get.
 
     Returns:
