@@ -1,13 +1,18 @@
 """Tests core functionality of PyVoteview."""
 
+from polars import Float32, Int32, Int64, Utf8
 from pytest import raises
 
 from pyvoteview.core import (
     CURRENT_CONGRESS_NUMBER,
     CURRENT_YEAR,
+    _convert_year_to_congress_number,
     _format_url,
     _validate_chamber,
     _validate_congress_number,
+    get_records_by_congress_range,
+    get_records_by_year,
+    get_records_by_year_range,
 )
 
 
@@ -89,3 +94,73 @@ def test__format_url() -> None:
     number = 115
     res = _format_url(number, "Senate")
     assert "S115" in res
+
+
+# get_records_by_congress_range ------------------------------------------------
+def test_get_records_by_congress_range() -> None:
+    """Tests get_records_by_congress_range() fails on ill-formatted ranges"""
+
+    start_number = 10
+    end_number = 20
+
+    with raises(
+        ValueError,
+        match=(
+            rf"The first number \({end_number}\) must be strictly "
+            rf"less than the last number \({start_number}\)."
+        ),
+    ):
+        get_records_by_congress_range(end_number, start_number, "House")
+
+
+# get_records_by_year ---------------------------------------------------------
+def test_get_records_by_year() -> None:
+    """Tests properties of the DataFrame from get_records_by_year()"""
+
+    year = 2005
+    number = _convert_year_to_congress_number(year)
+
+    record = get_records_by_year(year, "House")
+
+    expected_schema = {
+        "congress": Int64,
+        "chamber": Utf8,
+        "rollnumber": Int32,
+        "icpsr": Int32,
+        "cast_code": Int32,
+        "prob": Float32,
+    }
+
+    assert record.schema == expected_schema
+
+    assert "Senate" not in record["chamber"]
+    assert record["congress"].min() == number
+    assert record["congress"].max() == number
+
+
+# get_records_by_year_range ----------------------------------------------------
+def test_get_records_by_year_range() -> None:
+    """Tests properties of the DataFrame from get_records_by_year_range()"""
+
+    start_year = 2004
+    start_number = _convert_year_to_congress_number(start_year)
+    end_year = 2012
+    end_number = _convert_year_to_congress_number(end_year)
+
+    records = get_records_by_year_range(start_year, end_year, "House")
+
+    expected_schema = {
+        "congress": Int64,
+        "chamber": Utf8,
+        "rollnumber": Int32,
+        "icpsr": Int32,
+        "cast_code": Int32,
+        "prob": Float32,
+    }
+
+    assert records.schema == expected_schema
+
+    assert "Senate" not in records["chamber"]
+    assert records["congress"].min() == start_number
+    assert records["congress"].max() == end_number
+    assert records["congress"].is_sorted()
