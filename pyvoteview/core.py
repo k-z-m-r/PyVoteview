@@ -13,14 +13,13 @@ Sequence of events:
 4. Data is returned in a meaningful way.
 
 Additional questions:
-1. What if they want a range of sessions (114-115)?
-2. What if they want a range of years (2004-2007)?
-3. We should figure out how to have readable values for stuff like votes,
+1. We should figure out how to have readable values for stuff like votes,
 political party, etc.
+2. Pydantic? Could be a fun helper function.  Messy very quickly, though.
 """
 
 
-def get_voting_records(
+def get_voting_records_by_session(
     session: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
@@ -35,6 +34,25 @@ def get_voting_records(
     """
 
     del session, chamber
+    return DataFrame()
+
+
+def get_voting_records_by_sessions(
+    start_session: int, end_session: int, chamber: Literal["House", "Senate"]
+) -> DataFrame:
+    """
+    Retrieves voting records by sessions and chamber.
+
+    Args:
+        start_session: The start of the session range.
+        end_session: The end of the session range.
+        chamber: Which chamber of Congress to get.
+
+    Returns:
+        Polars DataFrame containing the voting records for that range.
+    """
+
+    del start_session, end_session, chamber
     return DataFrame()
 
 
@@ -54,4 +72,23 @@ def get_voting_records_by_year(
     """
 
     del year, chamber
+    return DataFrame()
+
+
+def get_voting_records_by_years(
+    start_year: int, end_year: int, chamber: Literal["House", "Senate"]
+) -> DataFrame:
+    """
+    Retrieves voting records by years and chamber.
+
+    Args:
+        start_year: The start of the year range.
+        end_year: The end of the year range.
+        chamber: Which chamber of Congress to get.
+
+    Returns:
+        Polars DataFrame containing the voting records for that range.
+    """
+
+    del start_year, end_year, chamber
     return DataFrame()
