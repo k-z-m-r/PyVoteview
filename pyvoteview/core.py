@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from math import floor
 from typing import Literal
 
-from polars import DataFrame, read_csv
+from polars import DataFrame, Float32, Int32, col, concat, read_csv
 
 """
 Sequence of events:
@@ -20,7 +20,6 @@ political party, etc.
 2. Pydantic? Could be a fun helper function.  Messy very quickly, though.
 """
 
-START_OF_CONGRESS = 1789
 CURRENT_YEAR = datetime.now(tz=UTC).year
 
 
@@ -36,10 +35,9 @@ def _convert_year_to_session(year: int) -> int:
         end of a session is actually part of the next session.
     """
 
-    return floor((year - START_OF_CONGRESS) / 2) + 1
+    return floor((year - 1789) / 2) + 1
 
 
-MINIMUM_SESSION = 1
 CURRENT_SESSION = _convert_year_to_session(CURRENT_YEAR)
 
 
@@ -57,10 +55,9 @@ def _validate_session(session: int) -> None:
             f"{CURRENT_SESSION} ({CURRENT_YEAR})."
         )
         raise ValueError(err)
-    if session < MINIMUM_SESSION:
+    if session < 1:
         err = (
-            f"This session cannot occur, as Congress begins "
-            f"at session {MINIMUM_SESSION} ({START_OF_CONGRESS})"
+            "This session cannot occur, as Congress begins at session 1 (1789)"
         )
         raise ValueError(err)
 
@@ -119,7 +116,14 @@ def get_voting_records_by_session(
 
     url = _format_url(session, chamber)
 
-    return read_csv(url)
+    record = read_csv(url, null_values=["N/A"])
+
+    return record.with_columns(
+        col("rollnumber").cast(Int32, strict=False),
+        col("icpsr").cast(Int32, strict=False),
+        col("cast_code").cast(Int32, strict=False),
+        col("prob").cast(Float32, strict=False),
+    )
 
 
 def get_voting_records_by_sessions(
@@ -144,12 +148,12 @@ def get_voting_records_by_sessions(
         )
         raise ValueError(err)
 
-    records = DataFrame()
+    records = []
     for session in range(start_session, end_session + 1):
         record = get_voting_records_by_session(session, chamber)
-        records.join(record)
+        records.append(record)
 
-    return records
+    return concat(records, how="vertical")
 
 
 def get_voting_records_by_year(
