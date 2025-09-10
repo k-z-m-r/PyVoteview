@@ -3,7 +3,7 @@ dependencies = [
     "polars==1.33.1",
 ]
 name = "pyvoteview"
-description = "PyVoteView package to process VoteView site data."
+description = "PyVoteview package to process VoteView site data."
 authors = [
     { name = "Jeremy Kazimer", email = "jeremykazimer@gmail.com" }
 ]
