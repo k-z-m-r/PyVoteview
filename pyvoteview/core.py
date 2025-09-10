@@ -93,7 +93,7 @@ def _format_url(
 
     Returns:
         URL formatted as:
-        https://voteview.com/static/data/out/votes/{Chamber}{Session}_votes.csv
+        https://voteview.com/static/data/out/votes/{Chamber}{Number}_votes.csv
     """
 
     return (

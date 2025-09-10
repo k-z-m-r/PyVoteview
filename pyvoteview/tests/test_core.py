@@ -5,6 +5,7 @@ from pytest import raises
 from pyvoteview.core import (
     CURRENT_CONGRESS_NUMBER,
     CURRENT_YEAR,
+    _format_url,
     _validate_chamber,
     _validate_congress_number,
 )
@@ -63,3 +64,28 @@ def test__validate_chamber() -> None:
         ),
     ):
         _validate_chamber(bad_input)
+
+
+# _format_url -----------------------------------------------------------------
+def test__format_url() -> None:
+    """Tests that _format_url() passes on three conditions:
+
+    1. A chamber and an integer between 0-9
+    2. A chamber and an integer between 10-99
+    3. A chamber and an integer between 100-999
+    """
+
+    # Case 1
+    number = 1
+    res = _format_url(number, "Senate")
+    assert "S001" in res
+
+    # Case 2
+    number = 19
+    res = _format_url(number, "Senate")
+    assert "S019" in res
+
+    # Case 3
+    number = 115
+    res = _format_url(number, "Senate")
+    assert "S115" in res
