@@ -11,7 +11,7 @@ from polars import DataFrame, Float32, Int32, col, concat, read_csv
 """
 Sequence of events:
 
-1. User selects a congress session and chamber.
+1. User selects a congress congress_number and chamber.
 2. Choices are formatted into a URL.
 3. URL is loaded by Polars.
 4. Data is returned in a meaningful way.
@@ -25,41 +25,42 @@ political party, etc.
 CURRENT_YEAR = datetime.now(tz=UTC).year
 
 
-def _convert_year_to_session(year: int) -> int:
+def _convert_year_to_congress_number(year: int) -> int:
     """
-    Converts a year to the corresponding U.S. Congress session.
+    Converts a year to the corresponding U.S. Congress number.
 
     Args:
         year: The year to convert.
 
     Returns:
-        The corresponding session.  Assumes the January which comes at the tail
-        end of a session is actually part of the next session.
+        The corresponding Congress number.  Assumes the January which comes at
+        the tail end of a Congress is actually part of the next Congress.
     """
 
     return floor((year - 1789) / 2) + 1
 
 
-CURRENT_SESSION = _convert_year_to_session(CURRENT_YEAR)
+CURRENT_CONGRESS_NUMBER = _convert_year_to_congress_number(CURRENT_YEAR)
 
 
-def _validate_session(session: int) -> None:
+def _validate_congress_number(congress_number: int) -> None:
     """
-    Validate that a session is valid for a Congress.
+    Validate that a number is valid for a Congress.
 
     Args:
-        session: Session to validate.
+        congress_number: Number to validate.
     """
 
-    if session > CURRENT_SESSION:
+    if congress_number > CURRENT_CONGRESS_NUMBER:
         err = (
-            "This session would occur after "
-            f"{CURRENT_SESSION} ({CURRENT_YEAR})."
+            "This Congress would occur after "
+            f"{CURRENT_CONGRESS_NUMBER} ({CURRENT_YEAR})."
         )
         raise ValueError(err)
-    if session < 1:
+    if congress_number < 1:
         err = (
-            "This session cannot occur, as Congress begins at session 1 (1789)"
+            "This Congress couldn't have occurred, "
+            "because the 1st Congress started in 1789"
         )
         raise ValueError(err)
 
@@ -80,43 +81,45 @@ def _validate_chamber(chamber: str) -> None:
         raise ValueError(err)
 
 
-def _format_url(session: int, chamber: Literal["House", "Senate"]) -> str:
+def _format_url(
+    congress_number: int, chamber: Literal["House", "Senate"]
+) -> str:
     """
     Formats URL to be consistent with Voteview expectation.
 
     Args:
-        session: The session of Congress.
+        congress_number: The number of Congress.
         chamber: The chamber of Congress.
 
     Returns:
         URL formatted as:
-        https://voteview.com/static/data/out/votes/{Chamber}{Session}_votes.csv
+        https://voteview.com/static/data/out/votes/{Chamber}{Number}_votes.csv
     """
 
     return (
         "https://voteview.com/static/data/out/votes/"
-        f"{chamber[0]}{session:03}_votes.csv"
+        f"{chamber[0]}{congress_number:03}_votes.csv"
     )
 
 
-def get_records_by_session(
-    session: int, chamber: Literal["House", "Senate"]
+def get_records_by_congress(
+    congress_number: int, chamber: Literal["House", "Senate"]
 ) -> DataFrame:
     """
-    Retrieves voting records by session and chamber.
+    Retrieves voting records by congress_number and chamber.
 
     Args:
-        session: Enumeration of which Congress to get.
+        congress_number: Enumeration of which Congress to get.
         chamber: Which chamber of Congress to get.
 
     Returns:
         Polars DataFrame containing the voting records.
     """
 
-    _validate_session(session)
+    _validate_congress_number(congress_number)
     _validate_chamber(chamber)
 
-    url = _format_url(session, chamber)
+    url = _format_url(congress_number, chamber)
 
     record = read_csv(url, null_values=["N/A"])
 
@@ -128,25 +131,27 @@ def get_records_by_session(
     )
 
 
-def get_records_by_session_range(
-    start_session: int, end_session: int, chamber: Literal["House", "Senate"]
+def get_records_by_congress_range(
+    start_congress_number: int,
+    end_congress_number: int,
+    chamber: Literal["House", "Senate"],
 ) -> DataFrame:
     """
     Retrieves voting records by sessions and chamber.
 
     Args:
-        start_session: The start of the session range.
-        end_session: The end of the session range.
+        start_congress_number: The start of the congress_number range.
+        end_congress_number: The end of the congress_number range.
         chamber: Which chamber of Congress to get.
 
     Returns:
         Polars DataFrame containing the voting records for that range.
     """
 
-    if start_session >= end_session:
+    if start_congress_number >= end_congress_number:
         err = (
-            f"The first session ({start_session}) must be strictly "
-            f"less than the last session ({end_session})."
+            f"The first number ({start_congress_number}) must be strictly "
+            f"less than the last number ({end_congress_number})."
         )
         raise ValueError(err)
 
@@ -156,8 +161,8 @@ def get_records_by_session_range(
     ) as executor:
         records = list(
             executor.map(
-                lambda s: get_records_by_session(s, chamber),
-                range(start_session, end_session + 1),
+                lambda s: get_records_by_congress(s, chamber),
+                range(start_congress_number, end_congress_number + 1),
             )
         )
 
@@ -171,16 +176,16 @@ def get_records_by_year(
     Retrieves voting records by year and chamber.
 
     Args:
-        year: The year that the session took place.
+        year: The year that the congress took place.
         chamber: Which chamber of Congress to get.
 
     Returns:
         Polars DataFrame containing the voting records.
     """
 
-    session = _convert_year_to_session(year)
+    congress_number = _convert_year_to_congress_number(year)
 
-    return get_records_by_session(session, chamber)
+    return get_records_by_congress(congress_number, chamber)
 
 
 def get_records_by_year_range(
@@ -198,7 +203,9 @@ def get_records_by_year_range(
         Polars DataFrame containing the voting records for that range.
     """
 
-    start_session = _convert_year_to_session(start_year)
-    end_session = _convert_year_to_session(end_year)
+    start_congress_number = _convert_year_to_congress_number(start_year)
+    end_congress_number = _convert_year_to_congress_number(end_year)
 
-    return get_records_by_session_range(start_session, end_session, chamber)
+    return get_records_by_congress_range(
+        start_congress_number, end_congress_number, chamber
+    )
