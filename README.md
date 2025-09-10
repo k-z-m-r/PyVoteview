@@ -4,7 +4,7 @@ PyVoteview is a Python package for programmatically accessing and analyzing U.S.
 
 ## Features
 
-- Fetch voting records by Congress session or year
+- Fetch voting records by Congress number or year
 - Retrieve data for a range of sessions or years
 - Fast, parallelized data loading using Polars and ThreadPoolExecutor
 
@@ -20,24 +20,24 @@ pip install pyvoteview
 ## Quick Start
 
 ```python
-from pyvoteview.core import get_records_by_session, get_records_by_year
+from pyvoteview.core import get_records_by_congress, get_records_by_year
 
 # Get House voting records for the 117th Congress
-df = get_records_by_session(117, "House")
+df = get_records_by_congress(117, "House")
 
 # Get Senate voting records for the year 2020
 df = get_records_by_year(2020, "Senate")
 
 # Get records for a range of sessions
-df_range = get_records_by_session_range(115, 117, "House")
+df_range = get_records_by_congress_range(115, 117, "House")
 ```
 
 All functions return a Polars `DataFrame`.
 
 ## API Reference
 
-- `get_records_by_session(session: int, chamber: Literal["House", "Senate"]) -> DataFrame`
-- `get_records_by_session_range(start_session: int, end_session: int, chamber: Literal["House", "Senate"]) -> DataFrame`
+- `get_records_by_congress(number: int, chamber: Literal["House", "Senate"]) -> DataFrame`
+- `get_records_by_congress_range(start_congress_number int, end_congress_number int, chamber: Literal["House", "Senate"]) -> DataFrame`
 - `get_records_by_year(year: int, chamber: Literal["House", "Senate"]) -> DataFrame`
 - `get_records_by_year_range(start_year: int, end_year: int, chamber: Literal["House", "Senate"]) -> DataFrame`
 

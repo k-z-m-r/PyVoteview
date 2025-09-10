@@ -2,36 +2,40 @@
 
 from pytest import raises
 
-from pyvoteview.core import CURRENT_SESSION, CURRENT_YEAR, _validate_session
+from pyvoteview.core import (
+    CURRENT_CONGRESS_NUMBER,
+    CURRENT_YEAR,
+    _validate_congress_number,
+)
 
-# _validate_session ------------------------------------------------------------
+# _validate_congress_number ----------------------------------------------------
 
 
-def test__validate_session() -> None:
-    """Tests that _validate_session works on three cases:
+def test__validate_congress_number() -> None:
+    """Tests that _validate_congress_number works on three cases:
 
     1. No exception
-    2. Raises exception when session < 1
-    3. Raises exception when session > current session
+    2. Raises exception when congress_number < 1
+    3. Raises exception when congress_number > current congress_number
     """
 
     # Case 1
-    _validate_session(100)
+    _validate_congress_number(100)
 
     # Case 2
     with raises(
         ValueError,
         match=(
-            "This session cannot occur, "
-            r"as Congress begins at session 1 \(1789\)"
+            "This Congress couldn't have occurred, "
+            "because the 1st Congress started in 1789"
         ),
     ):
-        _validate_session(0)
+        _validate_congress_number(0)
 
     # Case 3
     with raises(
         ValueError,
-        match="This session would occur after "
-        rf"{CURRENT_SESSION} \({CURRENT_YEAR}\).",
+        match="This Congress would occur after "
+        rf"{CURRENT_CONGRESS_NUMBER} \({CURRENT_YEAR}\).",
     ):
-        _validate_session(CURRENT_SESSION + 1)
+        _validate_congress_number(CURRENT_CONGRESS_NUMBER + 1)
