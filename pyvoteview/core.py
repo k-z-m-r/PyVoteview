@@ -1,5 +1,7 @@
 """Core functionality of PyVoteview"""
 
+from datetime import UTC, datetime
+from math import floor
 from typing import Literal
 
 from polars import DataFrame
@@ -18,6 +20,26 @@ political party, etc.
 2. Pydantic? Could be a fun helper function.  Messy very quickly, though.
 """
 
+START_OF_CONGRESS = 1789
+
+
+def _validate_year(year: int) -> None:
+    """
+    Validate that a year is valid from the lens of Congress (1789-Now).
+
+    Args:
+        year: Year to validate.
+    """
+
+    current_year = datetime.now(tz=UTC).year
+
+    if year > current_year:
+        err = "The year cannot be in the future."
+        raise ValueError(err)
+    if year < START_OF_CONGRESS:
+        err = "The year cannot be before the U.S. Congress existed."
+        raise ValueError(err)
+
 
 def _convert_year_to_session(year: int) -> int:
     """
@@ -31,8 +53,9 @@ def _convert_year_to_session(year: int) -> int:
         end of a session is actually part of the next session.
     """
 
-    del year
-    return 0
+    _validate_year(year)
+
+    return floor((year - START_OF_CONGRESS) / 2) + 1
 
 
 def get_voting_records_by_session(
@@ -86,8 +109,9 @@ def get_voting_records_by_year(
         Polars DataFrame containing the voting records.
     """
 
-    del year, chamber
-    return DataFrame()
+    session = _convert_year_to_session(year)
+
+    return get_voting_records_by_session(session, chamber)
 
 
 def get_voting_records_by_years(
