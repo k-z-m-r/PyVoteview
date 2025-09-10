@@ -142,7 +142,7 @@ def test_get_records_by_year() -> None:
 def test_get_records_by_year_range() -> None:
     """Tests properties of the DataFrame from get_records_by_year_range()"""
 
-    start_year = 2004
+    start_year = 2010
     start_number = _convert_year_to_congress_number(start_year)
     end_year = 2012
     end_number = _convert_year_to_congress_number(end_year)
