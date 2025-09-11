@@ -1,7 +1,6 @@
 """Core functionality of PyVoteview"""
 
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime
 from os import cpu_count
 from typing import Literal
 
@@ -12,6 +11,11 @@ from polars import (
 )
 
 from ._utilities import _cast_columns, _convert_year_to_congress_number
+from ._validators import (
+    _validate_category,
+    _validate_chamber,
+    _validate_congress_number,
+)
 
 """
 Sequence of events:
@@ -26,60 +30,6 @@ Additional questions:
 political party, etc.
 2. Pydantic? Could be a fun helper function.  Messy very quickly, though.
 """
-
-CURRENT_YEAR = datetime.now(tz=UTC).year
-CURRENT_CONGRESS_NUMBER = _convert_year_to_congress_number(CURRENT_YEAR)
-
-
-def _validate_congress_number(congress_number: int) -> None:
-    """
-    Validate that a number is valid for a Congress.
-
-    Args:
-        congress_number: Number to validate.
-    """
-
-    if congress_number > CURRENT_CONGRESS_NUMBER:
-        err = (
-            "This Congress would occur after "
-            f"{CURRENT_CONGRESS_NUMBER} ({CURRENT_YEAR})."
-        )
-        raise ValueError(err)
-    if congress_number < 1:
-        err = (
-            "This Congress couldn't have occurred, "
-            "because the 1st Congress started in 1789"
-        )
-        raise ValueError(err)
-
-
-def _validate_chamber(chamber: str) -> None:
-    """
-    Validate that a chamber is either House or Senate.
-
-    Args:
-        chamber: Chamber to validate.
-    """
-
-    if chamber not in ("House", "Senate"):
-        err = (
-            "Chamber must be one of House or Senate, "
-            f"but {chamber} was entered.  The input is case sensitive."
-        )
-        raise ValueError(err)
-
-
-def _validate_category(category: str) -> None:
-    """
-    Validate that a category is either votes or members.
-
-    Args:
-        category: Category to validate.
-    """
-
-    if category not in ("votes", "members"):
-        err = f"{category} was selected, but is not one of: votes, members"
-        raise ValueError(err)
 
 
 def _format_url(
