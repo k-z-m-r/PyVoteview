@@ -2,13 +2,7 @@
 
 from math import floor
 
-from polars import (
-    DataFrame,
-    DataType,
-    Float32,
-    Int32,
-    Utf8,
-)
+from polars import DataFrame, DataType, Float32, Int32, Utf8, col
 
 VOTEVIEW_SCHEMA: dict[str, type[DataType]] = {
     "congress": Int32,
@@ -84,4 +78,23 @@ def _cast_columns(record: DataFrame) -> DataFrame:
             for name in record.columns
             if name in VOTEVIEW_SCHEMA
         ]
+    )
+
+
+def remap_record(record: DataFrame) -> DataFrame:
+    """
+    Replaces cast codes in the DataFrame with their description.
+
+    Args:
+        record: The record to modify in-place.
+
+    Returns:
+        The original recorded modified so that cast codes are their
+        descriptions.
+    """
+
+    return record.with_columns(
+        col("cast_code")
+        .map_elements(lambda x: CAST_CODES_MAP.get(x), return_dtype=Utf8)
+        .alias("cast_code")
     )
