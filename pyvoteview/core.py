@@ -7,15 +7,11 @@ from typing import Literal
 
 from polars import (
     DataFrame,
-    DataType,
-    Float32,
-    Int32,
-    Utf8,
     concat,
     read_csv,
 )
 
-from ._utilities import _convert_year_to_congress_number
+from ._utilities import _cast_columns, _convert_year_to_congress_number
 
 """
 Sequence of events:
@@ -31,33 +27,6 @@ political party, etc.
 2. Pydantic? Could be a fun helper function.  Messy very quickly, though.
 """
 
-VOTEVIEW_SCHEMA: dict[str, type[DataType]] = {
-    "congress": Int32,
-    "chamber": Utf8,
-    "rollnumber": Int32,
-    "icpsr": Int32,
-    "cast_code": Int32,
-    "prob": Float32,
-    "state_icpsr": Int32,
-    "district_code": Int32,
-    "state_abbrev": Utf8,
-    "party_code": Int32,
-    "occupancy": Int32,
-    "last_means": Int32,
-    "bioname": Utf8,
-    "bioguide_id": Utf8,
-    "born": Int32,
-    "died": Float32,
-    "nominate_dim1": Float32,
-    "nominate_dim2": Float32,
-    "nominate_log_likelihood": Float32,
-    "nominate_geo_mean_probability": Float32,
-    "nominate_number_of_votes": Int32,
-    "nominate_number_of_errors": Int32,
-    "conditional": Utf8,
-    "nokken_poole_dim1": Float32,
-    "nokken_poole_dim2": Float32,
-}
 CURRENT_YEAR = datetime.now(tz=UTC).year
 CURRENT_CONGRESS_NUMBER = _convert_year_to_congress_number(CURRENT_YEAR)
 
@@ -135,26 +104,6 @@ def _format_url(
     return (
         f"https://voteview.com/static/data/out/{category}/"
         f"{chamber[0]}{congress_number:03}_{category}.csv"
-    )
-
-
-def _cast_columns(df: DataFrame) -> DataFrame:
-    """
-    Casts columns in a DataFrame to specified types.
-
-    Args:
-        df: The Polars DataFrame.
-        schema: Dict of column names to Polars types.
-
-    Returns:
-        DataFrame with columns cast to specified types.
-    """
-    return df.with_columns(
-        [
-            df[name].cast(VOTEVIEW_SCHEMA[name], strict=False)
-            for name in df.columns
-            if name in VOTEVIEW_SCHEMA
-        ]
     )
 
 

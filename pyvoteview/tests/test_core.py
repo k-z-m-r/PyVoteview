@@ -2,10 +2,10 @@
 
 from pytest import raises
 
+from pyvoteview._utilities import VOTEVIEW_SCHEMA
 from pyvoteview.core import (
     CURRENT_CONGRESS_NUMBER,
     CURRENT_YEAR,
-    VOTEVIEW_SCHEMA,
     _convert_year_to_congress_number,
     _format_url,
     _validate_chamber,
