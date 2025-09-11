@@ -32,7 +32,7 @@ VOTEVIEW_SCHEMA: dict[str, type[DataType]] = {
     "nokken_poole_dim2": Float32,
 }
 
-CAST_CODES_MAP: dict[int, str] = {
+CAST_CODE_MAP: dict[int, str] = {
     0: "Not a member of the chamber when this vote was taken",
     1: "Yea",
     2: "Paired Yea",
@@ -154,6 +154,6 @@ def remap_record(record: DataFrame, overwrite: bool = True) -> DataFrame:
     alias = "cast_code" if overwrite is True else "cast_code_str"
     return record.with_columns(
         col("cast_code")
-        .map_elements(lambda x: CAST_CODES_MAP.get(x), return_dtype=Utf8)
+        .map_elements(lambda x: CAST_CODE_MAP.get(x), return_dtype=Utf8)
         .alias(alias)
     )
