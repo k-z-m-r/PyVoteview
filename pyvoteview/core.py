@@ -10,9 +10,12 @@ from polars import (
     read_csv,
 )
 
-from ._utilities import _cast_columns, _convert_year_to_congress_number
+from ._url import _format_url
+from ._utilities import (
+    _cast_columns,
+    _convert_year_to_congress_number,
+)
 from ._validators import (
-    _validate_category,
     _validate_chamber,
     _validate_congress_number,
 )
@@ -30,31 +33,6 @@ Additional questions:
 political party, etc.
 2. Pydantic? Could be a fun helper function.  Messy very quickly, though.
 """
-
-
-def _format_url(
-    congress_number: int,
-    chamber: Literal["House", "Senate"],
-    category: Literal["votes", "members"],
-) -> str:
-    """
-    Formats URL to be consistent with Voteview expectation.
-
-    Args:
-        congress_number: The number of Congress.
-        chamber: The chamber of Congress.
-
-    Returns:
-        URL formatted as:
-        voteview.com/static/data/out/{Category}/{Chamber}{Number}{Category}.csv
-    """
-
-    _validate_category(category)
-
-    return (
-        f"https://voteview.com/static/data/out/{category}/"
-        f"{chamber[0]}{congress_number:03}_{category}.csv"
-    )
 
 
 def get_records_by_congress(

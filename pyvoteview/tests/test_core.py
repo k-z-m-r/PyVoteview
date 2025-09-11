@@ -7,44 +7,10 @@ from pyvoteview._utilities import (
     _convert_year_to_congress_number,
 )
 from pyvoteview.core import (
-    _format_url,
     get_records_by_congress_range,
     get_records_by_year,
     get_records_by_year_range,
 )
-
-
-# _format_url -----------------------------------------------------------------
-def test__format_url() -> None:
-    """Tests that _format_url() passes on the conditions:
-
-    1. A chamber and an integer between 0-9
-    2. A chamber and an integer between 10-99
-    3. A chamber and an integer between 100-999
-    4. Passing an unsupported category raises a ValueError.
-    """
-
-    # Case 1
-    number = 1
-    res = _format_url(number, "Senate", "votes")
-    assert "S001" in res
-
-    # Case 2
-    number = 19
-    res = _format_url(number, "Senate", "votes")
-    assert "S019" in res
-
-    # Case 3
-    number = 115
-    res = _format_url(number, "Senate", "votes")
-    assert "S115" in res
-
-    # Case 3
-    with raises(
-        ValueError,
-        match="parties was selected, but is not one of: votes, members",
-    ):
-        _format_url(0, "", "parties")  # type: ignore
 
 
 # get_records_by_congress_range ------------------------------------------------
