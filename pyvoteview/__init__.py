@@ -12,4 +12,4 @@ __all__ = [
     "get_records_by_year_range",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
