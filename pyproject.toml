@@ -11,9 +11,8 @@ license = "Apache-2.0"
 keywords = ["voteview", "congress", "politics"]
 urls = { source = "https://github.com/k-z-m-r/PyVoteview" }
 classifiers = [
-    "Intended Audience :: Data Analysts",
-    "Intended Audience :: Data Scientists",
-    "Intended Audience :: Political Scientists",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
