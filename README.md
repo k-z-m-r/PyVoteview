@@ -36,17 +36,28 @@ All functions return a Polars `DataFrame`.
 
 ## API Reference
 
-- `get_records_by_congress(number: int, chamber: Literal["House", "Senate"]) -> DataFrame`
-- `get_records_by_congress_range(start_congress_number int, end_congress_number int, chamber: Literal["House", "Senate"]) -> DataFrame`
-- `get_records_by_year(year: int, chamber: Literal["House", "Senate"]) -> DataFrame`
-- `get_records_by_year_range(start_year: int, end_year: int, chamber: Literal["House", "Senate"]) -> DataFrame`
+### Fetching Voting Records
 
-See [`pyvoteview/core.py`](pyvoteview/core.py) for full documentation.
+| Function | Description | Returns |
+|----------|-------------|---------|
+| `get_records_by_congress(number: int, chamber: Literal["House", "Senate"])` | Fetch roll call records for a specific Congress and chamber. | Polars `DataFrame` |
+| `get_records_by_congress_range(start_congress_number: int, end_congress_number: int, chamber: Literal["House", "Senate"])` | Fetch records for a range of Congress sessions. | Polars `DataFrame` |
+| `get_records_by_year(year: int, chamber: Literal["House", "Senate"])` | Fetch records for a specific year. | Polars `DataFrame` |
+| `get_records_by_year_range(start_year: int, end_year: int, chamber: Literal["House", "Senate"])` | Fetch records across multiple years. | Polars `DataFrame` |
+
+### Data Processing
+
+| Function | Description | Parameters |
+|----------|-------------|------------|
+| `rename_columns(record: DataFrame, overwrite_cast_code: bool = True, overwrite_party_code: bool = True)` | Replace numeric codes with descriptive labels for cast and party codes. | `overwrite_cast_code`: overwrite `cast_code` column if True.<br>`overwrite_party_code`: overwrite `party_code` column if True. |
+
+### Mappings
+
+- `CAST_CODES_MAP`: Maps integer roll call codes to human-readable descriptions
+  (see [Voteview enumeration](https://voteview.com/articles/data_help_votes)).
+- `PARTY_CODES_MAP`: Maps integer party codes to party names (see [Voteview enumeration](https://voteview.com/articles/data_help_parties)).
+
 
 ## License
 
 Licensed under the [Apache License 2.0](LICENSE).
-
-## Acknowledgements
-
-Data provided by [Voteview](https://voteview.com/)

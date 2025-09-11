@@ -3,7 +3,7 @@
 from pytest import raises
 
 from pyvoteview._utilities import (
-    VOTEVIEW_SCHEMA,
+    _VOTEVIEW_DATAFRAME_SCHEMA,
     _convert_year_to_congress_number,
 )
 from pyvoteview.core import (
@@ -39,7 +39,7 @@ def test_get_records_by_year() -> None:
 
     record = get_records_by_year(year, "House")
 
-    assert record.schema == VOTEVIEW_SCHEMA
+    assert record.schema == _VOTEVIEW_DATAFRAME_SCHEMA
 
     assert "Senate" not in record["chamber"]
     assert record["congress"].min() == number
@@ -57,7 +57,7 @@ def test_get_records_by_year_range() -> None:
 
     records = get_records_by_year_range(start_year, end_year, "House")
 
-    assert records.schema == VOTEVIEW_SCHEMA
+    assert records.schema == _VOTEVIEW_DATAFRAME_SCHEMA
 
     assert "Senate" not in records["chamber"]
     assert records["congress"].min() == start_number
