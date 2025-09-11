@@ -1,11 +1,11 @@
 """Tests core functionality of PyVoteview."""
 
-from polars import Float32, Int32, Int64, Utf8
 from pytest import raises
 
 from pyvoteview.core import (
     CURRENT_CONGRESS_NUMBER,
     CURRENT_YEAR,
+    VOTEVIEW_SCHEMA,
     _convert_year_to_congress_number,
     _format_url,
     _validate_chamber,
@@ -82,17 +82,17 @@ def test__format_url() -> None:
 
     # Case 1
     number = 1
-    res = _format_url(number, "Senate")
+    res = _format_url(number, "Senate", "votes")
     assert "S001" in res
 
     # Case 2
     number = 19
-    res = _format_url(number, "Senate")
+    res = _format_url(number, "Senate", "votes")
     assert "S019" in res
 
     # Case 3
     number = 115
-    res = _format_url(number, "Senate")
+    res = _format_url(number, "Senate", "votes")
     assert "S115" in res
 
 
@@ -122,16 +122,7 @@ def test_get_records_by_year() -> None:
 
     record = get_records_by_year(year, "House")
 
-    expected_schema = {
-        "congress": Int64,
-        "chamber": Utf8,
-        "rollnumber": Int32,
-        "icpsr": Int32,
-        "cast_code": Int32,
-        "prob": Float32,
-    }
-
-    assert record.schema == expected_schema
+    assert record.schema == VOTEVIEW_SCHEMA
 
     assert "Senate" not in record["chamber"]
     assert record["congress"].min() == number
@@ -149,16 +140,7 @@ def test_get_records_by_year_range() -> None:
 
     records = get_records_by_year_range(start_year, end_year, "House")
 
-    expected_schema = {
-        "congress": Int64,
-        "chamber": Utf8,
-        "rollnumber": Int32,
-        "icpsr": Int32,
-        "cast_code": Int32,
-        "prob": Float32,
-    }
-
-    assert records.schema == expected_schema
+    assert records.schema == VOTEVIEW_SCHEMA
 
     assert "Senate" not in records["chamber"]
     assert records["congress"].min() == start_number
