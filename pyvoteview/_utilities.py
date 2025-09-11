@@ -86,10 +86,10 @@ def remap_record(record: DataFrame) -> DataFrame:
     Replaces cast codes in the DataFrame with their description.
 
     Args:
-        record: The record to modify in-place.
+        record: The DataFrame to modify in-place.
 
     Returns:
-        The original recorded modified so that cast codes are their
+        The original DataFrame modified so that cast codes are their
         descriptions.
     """
 
