@@ -12,7 +12,6 @@ from polars import (
     Float32,
     Int32,
     Utf8,
-    col,
     concat,
     read_csv,
 )
@@ -168,8 +167,9 @@ def _cast_columns(df: DataFrame) -> DataFrame:
     """
     return df.with_columns(
         [
-            col(name).cast(dtype, strict=False)
-            for name, dtype in VOTEVIEW_SCHEMA.items()
+            df[name].cast(VOTEVIEW_SCHEMA[name], strict=False)
+            for name in df.columns
+            if name in VOTEVIEW_SCHEMA
         ]
     )
 
@@ -194,13 +194,12 @@ def get_records_by_congress(
     url_votes = _format_url(congress_number, chamber, "votes")
     url_members = _format_url(congress_number, chamber, "members")
 
-    record_votes = read_csv(url_votes, null_values=["N/A"])
-    record_members = read_csv(url_members, null_values=["N/A"])
+    record_votes = _cast_columns(read_csv(url_votes, null_values=["N/A"]))
+    record_members = _cast_columns(read_csv(url_members, null_values=["N/A"]))
 
-    record = record_votes.join(
+    return record_votes.join(
         record_members, on=["congress", "chamber", "icpsr"], coalesce=True
     )
-    return _cast_columns(record)
 
 
 def get_records_by_congress_range(
