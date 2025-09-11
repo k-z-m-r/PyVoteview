@@ -134,6 +134,10 @@ def _format_url(
         voteview.com/static/data/out/{Category}/{Chamber}{Number}{Category}.csv
     """
 
+    if category not in ("votes", "members"):
+        err = f"{category} was selected, but is not one of: votes, members"
+        raise ValueError(err)
+
     return (
         f"https://voteview.com/static/data/out/{category}/"
         f"{chamber[0]}{congress_number:03}_{category}.csv"
