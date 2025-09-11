@@ -81,20 +81,23 @@ def _cast_columns(record: DataFrame) -> DataFrame:
     )
 
 
-def remap_record(record: DataFrame) -> DataFrame:
+def remap_record(record: DataFrame, overwrite: bool = True) -> DataFrame:
     """
     Replaces cast codes in the DataFrame with their description.
 
     Args:
         record: The DataFrame to modify in-place.
+        overwrite: Whether or not to replace the existing column.  Defaults to
+            True, so cast_code gets replaced with strings.
 
     Returns:
         The original DataFrame modified so that cast codes are their
         descriptions.
     """
 
+    alias = "cast_code" if overwrite is True else "cast_code_str"
     return record.with_columns(
         col("cast_code")
         .map_elements(lambda x: CAST_CODES_MAP.get(x), return_dtype=Utf8)
-        .alias("cast_code")
+        .alias(alias)
     )
