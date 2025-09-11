@@ -1,6 +1,7 @@
 """Utility functions"""
 
 from math import floor
+from typing import Literal
 
 from polars import DataFrame, DataType, Float32, Int32, Utf8, col
 
@@ -157,6 +158,22 @@ def remap_record(
         descriptions.
     """
 
+    def reorder_columns(
+        df: DataFrame,
+        column_name: Literal["cast_code", "party_code"],
+    ) -> DataFrame:
+        """Helper to reorder the columns so {x}_str is to the right of {x}."""
+        cols = df.columns
+        cols.remove(
+            f"{column_name}_str",
+        )
+        order = [
+            *cols[: cols.index(column_name) + 1],
+            f"{column_name}_str",
+            *cols[cols.index(column_name) + 1 :],
+        ]
+        return df.select(order)
+
     cast_code_alias = (
         "cast_code" if overwrite_cast_code is True else "cast_code_str"
     )
@@ -164,7 +181,7 @@ def remap_record(
         "party_code" if overwrite_party_code is True else "party_code_str"
     )
 
-    return record.with_columns(
+    record = record.with_columns(
         col("cast_code")
         .map_elements(lambda x: CAST_CODE_MAP.get(x), return_dtype=Utf8)
         .alias(cast_code_alias),
@@ -172,3 +189,10 @@ def remap_record(
         .map_elements(lambda x: PARTY_CODE_MAP.get(x), return_dtype=Utf8)
         .alias(party_code_alias),
     )
+
+    if overwrite_cast_code is False:
+        record = reorder_columns(record, "cast_code")
+    if overwrite_party_code is False:
+        record = reorder_columns(record, "party_code")
+
+    return record
