@@ -155,5 +155,8 @@ def remap_record(record: DataFrame, overwrite: bool = True) -> DataFrame:
     return record.with_columns(
         col("cast_code")
         .map_elements(lambda x: CAST_CODE_MAP.get(x), return_dtype=Utf8)
-        .alias(alias)
+        .alias(alias),
+        col("party_code")
+        .map_elements(lambda x: PARTY_CODE_MAP.get(x), return_dtype=Utf8)
+        .alias("party_code"),
     )
