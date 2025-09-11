@@ -38,6 +38,19 @@ VOTEVIEW_SCHEMA: dict[str, type[DataType]] = {
     "nokken_poole_dim2": Float32,
 }
 
+CAST_CODES_MAP: dict[int, str] = {
+    0: "Not a member of the chamber when this vote was taken",
+    1: "Yea",
+    2: "Paired Yea",
+    3: "Announced Yea",
+    4: "Announced Nay",
+    5: "Paired Nay",
+    6: "Nay",
+    7: "Present (some Congresses)",
+    8: "Present (some Congresses)",
+    9: "Not Voting (Abstention)",
+}
+
 
 def _convert_year_to_congress_number(year: int) -> int:
     """
