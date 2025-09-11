@@ -137,26 +137,38 @@ def _cast_columns(record: DataFrame) -> DataFrame:
     )
 
 
-def remap_record(record: DataFrame, overwrite: bool = True) -> DataFrame:
+def remap_record(
+    record: DataFrame,
+    overwrite_cast_code: bool = True,
+    overwrite_party_code: bool = True,
+) -> DataFrame:
     """
     Replaces cast codes in the DataFrame with their description.
 
     Args:
         record: The DataFrame to modify in-place.
-        overwrite: Whether or not to replace the existing column.  Defaults to
-            True, so cast_code gets replaced with strings.
+        overwrite_cast_code: Whether or not to replace the existing column for
+            cast code. Defaults to True.
+        overwrite_party_code: Whether or not to replace the existing column for
+            party code. Defaults to True.
 
     Returns:
         The original DataFrame modified so that cast codes are their
         descriptions.
     """
 
-    alias = "cast_code" if overwrite is True else "cast_code_str"
+    cast_code_alias = (
+        "cast_code" if overwrite_cast_code is True else "cast_code_str"
+    )
+    party_code_alias = (
+        "party_code" if overwrite_party_code is True else "party_code_str"
+    )
+
     return record.with_columns(
         col("cast_code")
         .map_elements(lambda x: CAST_CODE_MAP.get(x), return_dtype=Utf8)
-        .alias(alias),
+        .alias(cast_code_alias),
         col("party_code")
         .map_elements(lambda x: PARTY_CODE_MAP.get(x), return_dtype=Utf8)
-        .alias("party_code"),
+        .alias(party_code_alias),
     )
