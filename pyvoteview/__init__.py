@@ -1,4 +1,4 @@
-from ._utilities import CAST_CODE_MAP, PARTY_CODE_MAP
+from ._utilities import CAST_CODE_MAP, PARTY_CODE_MAP, rename_columns
 from .core import (
     get_records_by_congress,
     get_records_by_congress_range,
@@ -13,6 +13,7 @@ __all__ = [
     "get_records_by_congress_range",
     "get_records_by_year",
     "get_records_by_year_range",
+    "rename_columns",
 ]
 
 __version__ = "0.2.1"

@@ -138,7 +138,7 @@ def _cast_columns(record: DataFrame) -> DataFrame:
     )
 
 
-def remap_record(
+def rename_columns(
     record: DataFrame,
     overwrite_cast_code: bool = True,
     overwrite_party_code: bool = True,
