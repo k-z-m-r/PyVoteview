@@ -2,7 +2,6 @@
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
-from math import floor
 from os import cpu_count
 from typing import Literal
 
@@ -15,6 +14,8 @@ from polars import (
     concat,
     read_csv,
 )
+
+from ._utilities import _convert_year_to_congress_number
 
 """
 Sequence of events:
@@ -58,23 +59,6 @@ VOTEVIEW_SCHEMA: dict[str, type[DataType]] = {
     "nokken_poole_dim2": Float32,
 }
 CURRENT_YEAR = datetime.now(tz=UTC).year
-
-
-def _convert_year_to_congress_number(year: int) -> int:
-    """
-    Converts a year to the corresponding U.S. Congress number.
-
-    Args:
-        year: The year to convert.
-
-    Returns:
-        The corresponding Congress number.  Assumes the January which comes at
-        the tail end of a Congress is actually part of the next Congress.
-    """
-
-    return floor((year - 1789) / 2) + 1
-
-
 CURRENT_CONGRESS_NUMBER = _convert_year_to_congress_number(CURRENT_YEAR)
 
 
