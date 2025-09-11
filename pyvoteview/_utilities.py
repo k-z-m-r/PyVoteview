@@ -4,7 +4,7 @@ from math import floor
 
 from polars import DataFrame, DataType, Float32, Int32, Utf8, col
 
-VOTEVIEW_SCHEMA: dict[str, type[DataType]] = {
+_VOTEVIEW_DATAFRAME_SCHEMA: dict[str, type[DataType]] = {
     "congress": Int32,
     "chamber": Utf8,
     "rollnumber": Int32,
@@ -130,9 +130,9 @@ def _cast_columns(record: DataFrame) -> DataFrame:
     """
     return record.with_columns(
         [
-            record[name].cast(VOTEVIEW_SCHEMA[name], strict=False)
+            record[name].cast(_VOTEVIEW_DATAFRAME_SCHEMA[name], strict=False)
             for name in record.columns
-            if name in VOTEVIEW_SCHEMA
+            if name in _VOTEVIEW_DATAFRAME_SCHEMA
         ]
     )
 
