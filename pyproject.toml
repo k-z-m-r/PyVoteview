@@ -10,6 +10,18 @@ authors = [
 license = "Apache-2.0"
 keywords = ["voteview", "congress", "politics"]
 urls = { source = "https://github.com/k-z-m-r/PyVoteview" }
+classifiers = [
+    "Intended Audience :: Data Analysts",
+    "Intended Audience :: Data Scientists",
+    "Intended Audience :: Political Scientists",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 readme = "README.md"
 requires-python = ">=3.11"
 dynamic = ["version"]
@@ -26,6 +38,7 @@ default-groups = []
 
 [dependency-groups]
 dev = [
+  "twine",
   "jupyter",
   "pytest",
   "coverage",

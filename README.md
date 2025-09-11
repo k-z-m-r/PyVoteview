@@ -11,7 +11,7 @@ PyVoteview is a Python package for programmatically accessing and analyzing U.S.
 
 ## Installation
 
-PyVoteview requires Python 3.12+ and [Polars](https://pola.rs/):
+PyVoteview requires Python 3.11+ and [Polars](https://pola.rs/):
 
 ```sh
 pip install pyvoteview
