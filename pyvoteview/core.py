@@ -117,6 +117,19 @@ def _validate_chamber(chamber: str) -> None:
         raise ValueError(err)
 
 
+def _validate_category(category: str) -> None:
+    """
+    Validate that a category is either votes or members.
+
+    Args:
+        category: Category to validate.
+    """
+
+    if category not in ("votes", "members"):
+        err = f"{category} was selected, but is not one of: votes, members"
+        raise ValueError(err)
+
+
 def _format_url(
     congress_number: int,
     chamber: Literal["House", "Senate"],
@@ -134,9 +147,7 @@ def _format_url(
         voteview.com/static/data/out/{Category}/{Chamber}{Number}{Category}.csv
     """
 
-    if category not in ("votes", "members"):
-        err = f"{category} was selected, but is not one of: votes, members"
-        raise ValueError(err)
+    _validate_category(category)
 
     return (
         f"https://voteview.com/static/data/out/{category}/"
