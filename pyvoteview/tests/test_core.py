@@ -2,106 +2,15 @@
 
 from pytest import raises
 
-from pyvoteview.core import (
-    CURRENT_CONGRESS_NUMBER,
-    CURRENT_YEAR,
-    VOTEVIEW_SCHEMA,
+from pyvoteview._utilities import (
+    _VOTEVIEW_DATAFRAME_SCHEMA,
     _convert_year_to_congress_number,
-    _format_url,
-    _validate_chamber,
-    _validate_congress_number,
+)
+from pyvoteview.core import (
     get_records_by_congress_range,
     get_records_by_year,
     get_records_by_year_range,
 )
-
-
-# _validate_congress_number ----------------------------------------------------
-def test__validate_congress_number() -> None:
-    """Tests that _validate_congress_number works on three cases:
-
-    1. No exception
-    2. Raises exception when congress_number < 1
-    3. Raises exception when congress_number > current congress_number
-    """
-
-    # Case 1
-    _validate_congress_number(100)
-
-    # Case 2
-    with raises(
-        ValueError,
-        match=(
-            "This Congress couldn't have occurred, "
-            "because the 1st Congress started in 1789"
-        ),
-    ):
-        _validate_congress_number(0)
-
-    # Case 3
-    with raises(
-        ValueError,
-        match="This Congress would occur after "
-        rf"{CURRENT_CONGRESS_NUMBER} \({CURRENT_YEAR}\).",
-    ):
-        _validate_congress_number(CURRENT_CONGRESS_NUMBER + 1)
-
-
-# _validate_chamber -----------------------------------------------------------
-def test__validate_chamber() -> None:
-    """Tests that _validate_chamber() passes on two conditions:
-
-    1. A valid string ("House" or "Senate")
-    2. Raises an error on an invalid string
-    """
-
-    # Case 1
-    _validate_chamber("House")
-    _validate_chamber("Senate")
-
-    # Case 2
-    bad_input = "Supreme Court"
-    with raises(
-        ValueError,
-        match=(
-            "Chamber must be one of House or Senate, "
-            f"but {bad_input} was entered.  The input is case sensitive."
-        ),
-    ):
-        _validate_chamber(bad_input)
-
-
-# _format_url -----------------------------------------------------------------
-def test__format_url() -> None:
-    """Tests that _format_url() passes on the conditions:
-
-    1. A chamber and an integer between 0-9
-    2. A chamber and an integer between 10-99
-    3. A chamber and an integer between 100-999
-    4. Passing an unsupported category raises a ValueError.
-    """
-
-    # Case 1
-    number = 1
-    res = _format_url(number, "Senate", "votes")
-    assert "S001" in res
-
-    # Case 2
-    number = 19
-    res = _format_url(number, "Senate", "votes")
-    assert "S019" in res
-
-    # Case 3
-    number = 115
-    res = _format_url(number, "Senate", "votes")
-    assert "S115" in res
-
-    # Case 3
-    with raises(
-        ValueError,
-        match="parties was selected, but is not one of: votes, members",
-    ):
-        _format_url(0, "", "parties")  # type: ignore
 
 
 # get_records_by_congress_range ------------------------------------------------
@@ -130,7 +39,7 @@ def test_get_records_by_year() -> None:
 
     record = get_records_by_year(year, "House")
 
-    assert record.schema == VOTEVIEW_SCHEMA
+    assert record.schema == _VOTEVIEW_DATAFRAME_SCHEMA
 
     assert "Senate" not in record["chamber"]
     assert record["congress"].min() == number
@@ -148,7 +57,7 @@ def test_get_records_by_year_range() -> None:
 
     records = get_records_by_year_range(start_year, end_year, "House")
 
-    assert records.schema == VOTEVIEW_SCHEMA
+    assert records.schema == _VOTEVIEW_DATAFRAME_SCHEMA
 
     assert "Senate" not in records["chamber"]
     assert records["congress"].min() == start_number
