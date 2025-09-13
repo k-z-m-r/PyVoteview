@@ -4,11 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from os import cpu_count
 from typing import Literal
 
-from polars import (
-    DataFrame,
-    concat,
-    read_csv,
-)
+from polars import DataFrame, col, concat, read_csv
 
 from ._url import _format_url
 from ._utilities import (
@@ -123,7 +119,9 @@ def get_records_by_year(
 
     congress_number = _convert_year_to_congress_number(year)
 
-    return get_records_by_congress(congress_number, chamber)
+    record = get_records_by_congress(congress_number, chamber)
+
+    return record.filter(col("date").dt.year() == year)
 
 
 def get_records_by_year_range(
@@ -144,6 +142,11 @@ def get_records_by_year_range(
     start_congress_number = _convert_year_to_congress_number(start_year)
     end_congress_number = _convert_year_to_congress_number(end_year)
 
-    return get_records_by_congress_range(
+    record = get_records_by_congress_range(
         start_congress_number, end_congress_number, chamber
+    )
+
+    return record.filter(
+        (col("date").dt.year() >= start_year)
+        & (col("date").dt.year() <= end_year)
     )
