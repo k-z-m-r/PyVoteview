@@ -54,6 +54,9 @@ def _validate_category(category: str) -> None:
         category: Category to validate.
     """
 
-    if category not in ("votes", "members"):
-        err = f"{category} was selected, but is not one of: votes, members"
+    if category not in ("members", "rollcalls", "votes"):
+        err = (
+            f"{category} was selected, but is not one of: "
+            "members, rollcalls, votes"
+        )
         raise ValueError(err)

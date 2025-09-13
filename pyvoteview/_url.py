@@ -8,7 +8,7 @@ from ._validators import _validate_category
 def _format_url(
     congress_number: int,
     chamber: Literal["House", "Senate"],
-    category: Literal["votes", "members"],
+    category: Literal["members", "rollcalls", "votes"],
 ) -> str:
     """
     Formats URL to be consistent with Voteview expectation.

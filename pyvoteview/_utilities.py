@@ -3,7 +3,7 @@
 from math import floor
 from typing import Literal
 
-from polars import DataFrame, DataType, Float32, Int32, Utf8, col
+from polars import DataFrame, DataType, Date, Float32, Int32, Utf8, col
 
 _VOTEVIEW_DATAFRAME_SCHEMA: dict[str, type[DataType]] = {
     "congress": Int32,
@@ -20,8 +20,8 @@ _VOTEVIEW_DATAFRAME_SCHEMA: dict[str, type[DataType]] = {
     "last_means": Int32,
     "bioname": Utf8,
     "bioguide_id": Utf8,
-    "born": Int32,
-    "died": Float32,
+    "born": Date,
+    "died": Date,
     "nominate_dim1": Float32,
     "nominate_dim2": Float32,
     "nominate_log_likelihood": Float32,
@@ -31,6 +31,21 @@ _VOTEVIEW_DATAFRAME_SCHEMA: dict[str, type[DataType]] = {
     "conditional": Utf8,
     "nokken_poole_dim1": Float32,
     "nokken_poole_dim2": Float32,
+    "date": Date,
+    "session": Utf8,
+    "clerk_rollnumber": Utf8,
+    "yea_count": Int32,
+    "nay_count": Int32,
+    "nominate_mid_1": Float32,
+    "nominate_mid_2": Float32,
+    "nominate_spread_1": Float32,
+    "nominate_spread_2": Float32,
+    "log_likelihood": Float32,
+    "bill_number": Utf8,
+    "vote_result": Utf8,
+    "vote_desc": Utf8,
+    "vote_question": Utf8,
+    "dtl_desc": Utf8,
 }
 
 CAST_CODE_MAP: dict[int, str] = {

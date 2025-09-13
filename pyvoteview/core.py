@@ -54,13 +54,17 @@ def get_records_by_congress(
 
     url_votes = _format_url(congress_number, chamber, "votes")
     url_members = _format_url(congress_number, chamber, "members")
+    url_rollcalls = _format_url(congress_number, chamber, "rollcalls")
 
     record_votes = _cast_columns(read_csv(url_votes, null_values=["N/A"]))
     record_members = _cast_columns(read_csv(url_members, null_values=["N/A"]))
+    record_rollcalls = _cast_columns(
+        read_csv(url_rollcalls, null_values=["N/A"])
+    ).rename({"nominate_log_likelihood": "log_likelihood"})
 
     return record_votes.join(
         record_members, on=["congress", "chamber", "icpsr"], coalesce=True
-    )
+    ).join(record_rollcalls, on=["congress", "chamber", "rollnumber"])
 
 
 def get_records_by_congress_range(
