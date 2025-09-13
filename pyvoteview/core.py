@@ -59,8 +59,10 @@ def get_records_by_congress(
     record_votes = _cast_columns(read_csv(url_votes, null_values=["N/A"]))
     record_members = _cast_columns(read_csv(url_members, null_values=["N/A"]))
     record_rollcalls = _cast_columns(
-        read_csv(url_rollcalls, null_values=["N/A"])
-    ).rename({"nominate_log_likelihood": "log_likelihood"})
+        read_csv(url_rollcalls, null_values=["N/A"]).rename(
+            {"nominate_log_likelihood": "log_likelihood"}
+        )
+    )
 
     return record_votes.join(
         record_members, on=["congress", "chamber", "icpsr"], coalesce=True
