@@ -1,6 +1,7 @@
 [project]
 dependencies = [
     "polars[pandas, pyarrow]==1.33.1",
+    "tqdm"
 ]
 name = "pyvoteview"
 description = "PyVoteview package to process VoteView site data."

@@ -1,10 +1,11 @@
 """Core functionality of PyVoteview"""
 
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from os import cpu_count
 from typing import Literal
 
 from polars import DataFrame, col, concat, read_csv
+from tqdm import tqdm
 
 from ._url import _format_url
 from ._utilities import (
@@ -69,6 +70,7 @@ def get_records_by_congress_range(
     start_congress_number: int,
     end_congress_number: int,
     chamber: Literal["House", "Senate"],
+    disable_tqdm: bool = False,
 ) -> DataFrame:
     """
     Retrieves voting records by sessions and chamber.
@@ -77,6 +79,7 @@ def get_records_by_congress_range(
         start_congress_number: The start of the congress_number range.
         end_congress_number: The end of the congress_number range.
         chamber: Which chamber of Congress to get.
+        disable_tqdm: Whether to disable TQDM progress tracker.
 
     Returns:
         Polars DataFrame containing the voting records for that range.
@@ -89,16 +92,25 @@ def get_records_by_congress_range(
         )
         raise ValueError(err)
 
-    records = []
+    records: list[DataFrame] = []
+
     with ThreadPoolExecutor(
         max_workers=min(32, (cpu_count() or 1) + 4)
     ) as executor:
-        records = list(
-            executor.map(
-                lambda s: get_records_by_congress(s, chamber),
-                range(start_congress_number, end_congress_number + 1),
-            )
-        )
+        futures = [
+            executor.submit(get_records_by_congress, n, chamber)
+            for n in range(start_congress_number, end_congress_number + 1)
+        ]
+
+        for future in tqdm(
+            as_completed(futures),
+            total=len(futures),
+            position=0,
+            leave=True,
+            desc="Fetching voting records",
+            disable=not disable_tqdm,
+        ):
+            records.append(future.result())
 
     return concat(records, how="vertical").sort("congress")
 
@@ -125,7 +137,10 @@ def get_records_by_year(
 
 
 def get_records_by_year_range(
-    start_year: int, end_year: int, chamber: Literal["House", "Senate"]
+    start_year: int,
+    end_year: int,
+    chamber: Literal["House", "Senate"],
+    disable_tqdm: bool = False,
 ) -> DataFrame:
     """
     Retrieves voting records by years and chamber.
@@ -134,6 +149,7 @@ def get_records_by_year_range(
         start_year: The start of the year range.
         end_year: The end of the year range.
         chamber: Which chamber of Congress to get.
+        disable_tqdm: Whether to disable TQDM progress tracker.
 
     Returns:
         Polars DataFrame containing the voting records for that range.
@@ -143,7 +159,10 @@ def get_records_by_year_range(
     end_congress_number = _convert_year_to_congress_number(end_year)
 
     record = get_records_by_congress_range(
-        start_congress_number, end_congress_number, chamber
+        start_congress_number,
+        end_congress_number,
+        chamber,
+        disable_tqdm=disable_tqdm,
     )
 
     return record.filter(
