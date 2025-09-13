@@ -4,7 +4,6 @@ from pytest import raises
 
 from pyvoteview._utilities import (
     _VOTEVIEW_DATAFRAME_SCHEMA,
-    _convert_year_to_congress_number,
 )
 from pyvoteview.core import (
     get_records_by_congress_range,
@@ -50,15 +49,13 @@ def test_get_records_by_year_range() -> None:
     """Tests properties of the DataFrame from get_records_by_year_range()"""
 
     start_year = 2010
-    start_number = _convert_year_to_congress_number(start_year)
     end_year = 2012
-    end_number = _convert_year_to_congress_number(end_year)
 
     records = get_records_by_year_range(start_year, end_year, "House")
 
     assert records.schema == _VOTEVIEW_DATAFRAME_SCHEMA
 
     assert "Senate" not in records["chamber"]
-    assert records["congress"].min() == start_number
-    assert records["congress"].max() == end_number
+    assert records["date"].min().year == start_year  # type: ignore
+    assert records["date"].max().year == end_year  # type: ignore
     assert records["congress"].is_sorted()

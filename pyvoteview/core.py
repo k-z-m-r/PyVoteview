@@ -142,6 +142,11 @@ def get_records_by_year_range(
     start_congress_number = _convert_year_to_congress_number(start_year)
     end_congress_number = _convert_year_to_congress_number(end_year)
 
-    return get_records_by_congress_range(
+    record = get_records_by_congress_range(
         start_congress_number, end_congress_number, chamber
+    )
+
+    return record.filter(
+        (col("date").dt.year() >= start_year)
+        & (col("date").dt.year() <= end_year)
     )
