@@ -35,6 +35,8 @@ def test__format_url() -> None:
     # Case 3
     with raises(
         ValueError,
-        match="parties was selected, but is not one of: votes, members",
+        match=(
+            "parties was selected, but is not one of: members, rollcalls, votes"
+        ),
     ):
         _format_url(0, "", "parties")  # type: ignore
