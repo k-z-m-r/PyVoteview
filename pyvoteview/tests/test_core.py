@@ -35,15 +35,14 @@ def test_get_records_by_year() -> None:
     """Tests properties of the DataFrame from get_records_by_year()"""
 
     year = 2005
-    number = _convert_year_to_congress_number(year)
 
     record = get_records_by_year(year, "House")
 
     assert record.schema == _VOTEVIEW_DATAFRAME_SCHEMA
 
     assert "Senate" not in record["chamber"]
-    assert record["congress"].min() == number
-    assert record["congress"].max() == number
+    assert record["date"].min().year == year  # type: ignore
+    assert record["date"].max().year == year  # type: ignore
 
 
 # get_records_by_year_range ----------------------------------------------------
